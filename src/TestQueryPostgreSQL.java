@@ -70,7 +70,6 @@ public class TestQueryPostgreSQL
     		System.out.println(e);
     	}
     }
-    
     /**
      * Tests create.
      */

@@ -19,8 +19,6 @@ public class QueryMySQL
 	 * Connection to database
 	 */
 	private Connection con;
-	
-	
 	/**
 	 * Main method is only used for convenience.  Use JUnit test file to verify your answer.
 	 * 
@@ -60,7 +58,11 @@ public class QueryMySQL
 		System.out.println("Connecting to database.");		
 		// Note: Must assign connection to instance variable as well as returning it back to the caller
 		// TODO: Make a connection to the database and store connection in con variable before returning it.
-		return null;	                       
+
+		con = DriverManager.getConnection(url, uid, pw);
+
+
+		return con;	                       
 	}
 	
 	/**
@@ -70,7 +72,15 @@ public class QueryMySQL
 	{
 		System.out.println("Closing database connection.");
 
-		// TODO: Close the database connection.  Catch any exception and print out if it occurs.				
+		// TODO: Close the database connection.  Catch any exception and print out if it occurs.	
+		try {
+
+			con.close();
+			
+		} catch (SQLException e) {
+
+			System.out.println(e);
+		}
 	}
 	
 	/**
@@ -80,7 +90,18 @@ public class QueryMySQL
 	{
 		System.out.println("Dropping table person.");
 
-		// TODO: Drop the table person.  Catch any exception and print out if it occurs.				
+
+
+		String sql = "DROP TABLE person";		
+	
+		try {
+			Statement stmt = con.createStatement();
+			stmt.executeUpdate(sql);
+		} catch (SQLException e) {
+			//TODO: handle exception
+			System.out.println(e);
+		}
+		
 	}
 	
 	/**
@@ -95,7 +116,15 @@ public class QueryMySQL
 	public void create() throws SQLException
 	{
 		System.out.println("Creating table person.");
-		// TODO: Create the table person.			
+		// TODO: Create the table person.	
+		String sql = "CREATE TABLE person(id int NOT NULL AUTO_INCREMENT, name varchar(40), salary dec(10,2), birthdate date, last_update timestamp, PRIMARY KEY (id));";
+		try {
+			Statement stmt = con.createStatement();
+			stmt.executeUpdate(sql);
+		} catch (SQLException e) {
+			// TODO: handle exception
+			System.out.println(e);
+		}
 	}
 	
 	/**
@@ -110,7 +139,23 @@ public class QueryMySQL
 	public void insert() throws SQLException
 	{
 		System.out.println("Inserting records.");
-		// TODO: Insert records using a PreparedStatement.		
+		// TODO: Insert records using a PreparedStatement.	
+		
+		String[] names =  {"Ann Alden", "Bob Baron", "Chloe Cat", "Don Denton", "Eddy Edwards"};
+		String[] salaries = { "123000", "225423", "99999999.99", "91234.24", "55125125.25"};
+		String[] birthdates = {"1986-03-04", "1993-12-02", "1999-01-15", "2004-08-03", "2003-05-17"};
+		String[] late_updates = {"2022-01-04 11:30:30", "2022-01-04 12:30:25", "2022-01-04 12:25:45", "2022-01-04 12:45:00", "2022-01-05 23:00:00"};
+
+		String sql = "INSERT INTO person (name, salary, birthdate, last_update) VALUES (?, ?, ?, ?)";
+		PreparedStatement pstmt = con.prepareStatement(sql);
+		
+		for(int i = 0; i < names.length; i++) {
+			pstmt.setString(1, names[i]);
+			pstmt.setString(2, salaries[i]);
+			pstmt.setString(3, birthdates[i]);
+			pstmt.setString(4, late_updates[i]);
+			pstmt.executeUpdate();
+		}
 	}
 	
 	/**
@@ -125,7 +170,17 @@ public class QueryMySQL
 	{
 		System.out.println("Deleting a record.");
 		// TODO: Delete record where name is 'Bob Baron'
-		return 0;	
+		String sql = "DELETE FROM person WHERE name = 'Bob Baron'";
+		int rowsAffected = 0;
+		try {
+			Statement stmt = con.createStatement();
+			rowsAffected = stmt.executeUpdate(sql);
+		} catch (SQLException e) {
+			// TODO: handle exception
+			System.out.println(e);
+		}
+		
+		return rowsAffected;	
 	}
 	
 	/**
@@ -140,7 +195,16 @@ public class QueryMySQL
 	{
 		System.out.println("Executing query #1.");
 		// TODO: Write SQL query
-		return null;		
+		String sql = "Select name, salary FROM person ORDER BY salary DESC";
+		ResultSet rst = null;
+		try {
+			Statement stmt = con.createStatement();
+			rst = stmt.executeQuery(sql);
+		} catch (SQLException e) {
+			// TODO: handle exception
+			System.out.println(e);
+		}
+		return rst;		
 	}
 	
 	/**
@@ -155,7 +219,18 @@ public class QueryMySQL
 	{
 		System.out.println("Executing query #2.");
 		// TODO: Write SQL query
-		return null;
+
+		String sql = "SELECT SUBSTRING_INDEX(name, ' ', -1) AS lastname, salary FROM person WHERE salary > (SELECT avg(salary) FROM person)";
+		ResultSet rst = null;
+		try {
+			Statement stmt = con.createStatement();
+			rst = stmt.executeQuery(sql);
+		} catch (Exception e) {
+			//TODO: handle exception
+			System.out.println(e);
+
+		}
+		return rst;
 	}
 	
 	/**
@@ -170,8 +245,15 @@ public class QueryMySQL
 	public ResultSet query3() throws SQLException
 	{
 		System.out.println("Executing query #3.");
-		// TODO: Write SQL query
-		return null;
+		String sql = "SELECT * FROM person AS p1 CROSS JOIN person AS p2 WHERE (TIMESTAMPDIFF(HOUR,p1.last_update, p2.last_update) = 0) AND p1.id != p2.id AND p1.id < p2.id";
+		ResultSet rst = null;
+		try {
+			Statement stmt = con.createStatement();
+			rst = stmt.executeQuery(sql);
+		} catch (SQLException e) {
+			System.out.println(e);
+		}
+		return rst;	
 	}
 	
 	/*
